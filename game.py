@@ -43,8 +43,8 @@ global score
 score = 0
 
 # misc?
-powerups = ['heart', 'atkrate', 'explosion', 'rapidfire', 'supershield']    # last two not implemented yet
-angle = 3.14 / 5
+powerups = ['heart', 'atkrate', 'explosion', 'rapidfire', 'supershield']    # explosion in progress, last one not done
+angle = math.pi / 5
 global exploding
 global explodingRadius
 exploding = False
@@ -66,7 +66,7 @@ class Ufo(pygame.sprite.Sprite):
         self.iframes = 0                 # invincibility frames
         self.speedDivisor = random.randrange(1, min(level, 5)+1)
         self.speed = max(1, random.randrange(1, min(level, 5)+1) / random.randrange(1, self.speedDivisor+1))
-        self.reload_time = 1000          # milliseconds
+        self.reload_time = random.randrange(1000, 4000, 1000)          # milliseconds
 
     def update(self):
         if self.direction == 1:
@@ -100,6 +100,8 @@ class Player(pygame.sprite.Sprite):
         self.reload_time = 0         # milliseconds
         self.max_reload = 1000
         self.powerup = 0
+        self.powerup_time = 0
+        self.temp_max_reload = 80
 
     def update(self):
         if self.iframes > 0:
@@ -146,7 +148,7 @@ class Consumable(pygame.sprite.Sprite):
             self.image = pygame.Surface([15, 15])
             self.image.fill(BLUE)
             self.rect = self.image.get_rect(center=pos)
-        elif powertype == 'explosion':
+        elif powertype == 'rapidfire':
             orb = pygame.Surface([20, 20], pygame.SRCALPHA)
             pygame.draw.circle(orb, BLUE, (10, 10), 10)
             self.image = orb
@@ -154,6 +156,7 @@ class Consumable(pygame.sprite.Sprite):
         self.health = 1
 
 
+# temp not in use
 def explosion():
     global exploding
     global explodingRadius
@@ -206,7 +209,7 @@ def checkCollision(group1, group2):
                     player.health += 1
                 elif item.powertype == 'atkrate':
                     player.max_reload = player.max_reload / 2
-                elif item.powertype == 'explosion':
+                elif item.powertype == 'rapidfire':
                     player.powerup += 1
             checkDeath(item)
 
@@ -241,12 +244,12 @@ def updateLevel():
         powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'heart')
         powerups_list.add(powerup)
         sprites_list.add(powerup)
-    if level == 3 or level == 7:
+    if level == 3 or level == 7 or level == 13:
         powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'atkrate')
         powerups_list.add(powerup)
         sprites_list.add(powerup)
     if level % 4 == 0:
-        powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'explosion')
+        powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'rapidfire')
         powerups_list.add(powerup)
         sprites_list.add(powerup)
     for x in range(random.randrange(1, min(level, 14)+1)):
@@ -288,8 +291,10 @@ while (running):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     player.powerup -= 1
-                    player.iframes = 300
-                    exploding = True
+                    player.powerup_time = 3000
+                    # following was an explosion powerup attempt
+#                    player.iframes = 300
+#                    exploding = True
                     radius = 1
         if player.health == 0:
             if event.type == pygame.KEYDOWN:
@@ -315,12 +320,23 @@ while (running):
         if keys[pygame.K_RIGHT] and (player.rect.x <= 670):
             player.rect.x += 4
         if player.reload_time <= 0:
-            player.reload_time = player.max_reload
-            bullet = Bullet((player.rect.x + 15, player.rect.y + 10), BLUE, 'square', 0, 1)
-            bluebullet_list.add(bullet)
-            bullet_list.add(bullet)
-            sprites_list.add(bullet)
+            if player.powerup_time > 0:
+                player.reload_time = player.temp_max_reload
+                for value in range(2, 5):
+                    x = math.cos(angle*value)
+                    y = math.sin(angle*value)
+                    bullet = Bullet(player.rect.midtop, BLUE, 'orb', x, y)
+                    bluebullet_list.add(bullet)
+                    bullet_list.add(bullet)
+                    sprites_list.add(bullet)
+            else:
+                player.reload_time = player.max_reload
+                bullet = Bullet((player.rect.x + 15, player.rect.y + 10), BLUE, 'square', 0, 1)
+                bluebullet_list.add(bullet)
+                bullet_list.add(bullet)
+                sprites_list.add(bullet)
     player.reload_time -= dt
+    player.powerup_time -= dt
 
     # ufo attack
     for ufo in enemy_list:
@@ -345,7 +361,7 @@ while (running):
                     sprites_list.add(bullet)
             else:
                 ufo.reload_time = random.randrange(1000, 4000, 1000)
-                bullet = Bullet(ufo.rect.center, RED, 'square', 0, -1)
+                bullet = Bullet(ufo.rect.midbottom, RED, 'square', 0, -1)
                 redbullet_list.add(bullet)
                 bullet_list.add(bullet)
                 sprites_list.add(bullet)
@@ -373,10 +389,10 @@ while (running):
     # requires each sprite to have a surface.image attr. and surface.rect
     sprites_list.draw(screen)                                       # draw can only be called by groups?
 
-    if exploding:
-        explosion()
-        explode = pygame.draw.circle(screen, BLUE, player.rect.center, explodingRadius)
-        pygame.display.update(explode)
+#    if exploding:
+#        explosion()
+#        explode = pygame.draw.circle(screen, BLUE, player.rect.center, explodingRadius)
+#        pygame.display.update(explode)
 
     # game over
     if player.health <= 0:
