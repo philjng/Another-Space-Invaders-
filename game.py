@@ -44,7 +44,7 @@ score = 0
 
 # misc?
 powerups = ['heart', 'atkrate', 'explosion', 'rapidfire', 'supershield']    # explosion in progress, last one not done
-angle = math.pi / 5
+angle = math.pi / 6
 global exploding
 global explodingRadius
 exploding = False
@@ -95,7 +95,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()                                        # call sprite constructor
         self.image = ROCKET
         self.rect = self.image.get_rect(center=pos)
-        self.health = 4
+        self.health = 5
         self.iframes = 0
         self.reload_time = 0         # milliseconds
         self.max_reload = 1000
@@ -299,11 +299,12 @@ while (running):
         if player.health == 0:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
-                    player.health = 4
+                    player.health = 5
                     player.rect.x = WIDTH/2
                     player.rect.y = HEIGHT-50
                     player.iframes = 300
                     player.max_reload = 1000
+                    player.powerup = 0
                     for ufo in enemy_list:
                         ufo.health = 0
                         checkDeath(ufo)
