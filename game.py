@@ -70,16 +70,16 @@ class Ufo(pygame.sprite.Sprite):
 
     def update(self):
         if self.direction == 1:
-            if not outOfBounds(self) and self.rect.x < self.maxhorizontal:
+            if self.rect.x < self.maxhorizontal:
                 self.rect.x += self.speed
             else:
                 self.maxhorizontal = random.randrange(36, self.rect.x+1)
                 self.direction = 0
         else:
-            if not outOfBounds(self) and self.rect.x > self.maxhorizontal:
+            if self.rect.x > self.maxhorizontal:
                 self.rect.x -= self.speed
             else:
-                self.maxhorizontal = random.randrange(self.rect.x, WIDTH-36)
+                self.maxhorizontal = random.randrange(max(self.rect.x, 36), WIDTH-36)
                 self.direction = 1
         if self.iframes == 10:
             self.image = pygame.Surface([30,45])
@@ -240,7 +240,7 @@ def updateLevel():
             ufo = Ufo((random.randrange(36, WIDTH-36), random.randrange(50, int(HEIGHT/2))), 'orb')
             sprites_list.add(ufo)
             enemy_list.add(ufo)
-    if level % 5 == 0 and player.health < 6:
+    if level % 5 == 0: #and player.health < 6
         powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'heart')
         powerups_list.add(powerup)
         sprites_list.add(powerup)
@@ -252,7 +252,11 @@ def updateLevel():
         powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'rapidfire')
         powerups_list.add(powerup)
         sprites_list.add(powerup)
-    for x in range(random.randrange(1, min(level, 14)+1)):
+        if player.health <= 3:
+            powerup = Consumable((random.randrange(50, WIDTH - 50), random.randrange(100, HEIGHT - 50)), 'heart')
+            powerups_list.add(powerup)
+            sprites_list.add(powerup)
+    for x in range(random.randrange(1, min(level, 12)+1)):
         ufo = Ufo((random.randrange(36, WIDTH-36), random.randrange(50, int(HEIGHT/2))), 'straight')
         sprites_list.add(ufo)
         enemy_list.add(ufo)
@@ -277,7 +281,7 @@ playerlist = [player]
 defaultfont = pygame.font.SysFont('comic_sans', 21)
 gameoverfont = pygame.font.SysFont('comic_sans', 64)
 endtext = gameoverfont.render('GAME OVER', True, WHITE)
-endtext2 = defaultfont.render('To play again,press [ A ]', True, WHITE)
+endtext2 = defaultfont.render('To play again,press [ J ]', True, WHITE)
 textRect = endtext.get_rect(center=(WIDTH/2, HEIGHT/2))
 textRect2 = endtext2.get_rect(center=(WIDTH/2, HEIGHT/2))
 
@@ -289,16 +293,16 @@ while (running):
             running = False
         if player.health > 0 and player.powerup > 0:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and player.powerup_time <= 0:
                     player.powerup -= 1
                     player.powerup_time = 3000
+                    player.iframes = 300
                     # following was an explosion powerup attempt
-#                    player.iframes = 300
 #                    exploding = True
-                    radius = 1
+#                    radius = 1
         if player.health == 0:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
+                if event.key == pygame.K_j:
                     player.health = 5
                     player.rect.x = WIDTH/2
                     player.rect.y = HEIGHT-50
