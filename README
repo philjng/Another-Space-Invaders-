@@ -5,8 +5,7 @@ Will add additional / alternate abilities later
 UFO - 400 points
 PowerUps - 300 points
 - square power up: attack speed increase (at level 3, 7, 13)
-- circle power up: allows for a 3 second spread attack on space bar press
-- heart: recover a heart (every 5th level, hearts capped at 6 for now)
+- circle power up: allows for a 3 second spread attack on space bar press and grants shield for short moment
+- heart: recover a heart (every 5th level, additional heart at every 4 when health < 4)
 
-difficulty basically capped at level 15, main increment of difficulty is at every 5 levels onward.
 taking damage will take 1 heart and provide a barrier that ignores all damage for 3(?) seconds
